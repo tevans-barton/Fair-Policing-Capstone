@@ -1,4 +1,4 @@
-config
-data
-notbooks
-src
+./config
+./data
+./notebooks
+./src
