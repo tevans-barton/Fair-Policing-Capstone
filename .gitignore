@@ -4,7 +4,7 @@
 
 
 
-!src/.gitkeep
-!config/.gitkeep
-!data/.gitkeep
-!notebooks/.gitkeep
+!./src/.gitkeep
+!./config/.gitkeep
+!./data/.gitkeep
+!./notebooks/.gitkeep
