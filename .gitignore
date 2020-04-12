@@ -2,9 +2,4 @@
 *.txt
 .DS_Store
 
-
-
-!./src/.gitkeep
-!./config/.gitkeep
-!./data/.gitkeep
-!./notebooks/.gitkeep
+!sd_population.csv
