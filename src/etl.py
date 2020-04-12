@@ -1,12 +1,19 @@
 import pandas as pd
 import os
 import json
+import glob
+import numpy as np
+import doctest
+import datetime as dt
+from trends import *
 
 OLD_FORMAT_URL_FIRST_HALF = 'http://seshat.datasd.org/pd/vehicle_stops_'
 OLD_FORMAT_URL_SECOND_HALF = '_datasd_v1.csv'
 NEW_FORMAT_URL_FIRST_HALF = 'http://seshat.datasd.org/pd/ripa_'
 
-def get_table(year, ripa_suffixes = None, ripa_columns = None):
+TOP_PATH = os.environ['PWD']
+
+def get_stops_table(year, ripa_suffixes = None, ripa_columns = None):
     if year < 2018:
         url = OLD_FORMAT_URL_FIRST_HALF + str(year) + OLD_FORMAT_URL_SECOND_HALF
         df = pd.read_csv(url)
@@ -19,13 +26,44 @@ def get_table(year, ripa_suffixes = None, ripa_columns = None):
             df = df.drop_duplicates(['stop_id'])
     return df
 
+def parse_csv(csv_contents):
+    lines = csv_contents.split('\n')
+    df = pd.DataFrame(columns = ['date','value'])
+    dates = []
+    values = []
+    # Delete top 3 lines
+    for line in lines[3:-1]:
+        try:
+            dates.append(line.split(',')[0].replace(' ',''))
+            values.append(line.split(',')[1].replace(' ',''))
+        except:
+            pass
+    df['date'] = dates
+    df['value'] = values
+    return df 
 
-def get_data(years, ripa_suffixes, ripa_columns, outpath):
-    if not os.path.exists(outpath):
-        os.makedirs(outpath, exist_ok = True)
+def get_data(start_date, end_date, keyword, years, ripa_suffixes, ripa_columns, outpath):
+    trends = pytrends()
+    if not os.path.exists(TOP_PATH + outpath):
+        os.makedirs(TOP_PATH + outpath, exist_ok = True)
+    for i in range(len(keyword)):
+        time = (start_date[i], end_date[i])
+        rep = trends.download_report(keyword[i], time = time)
+        file = parse_csv(rep)
+        file.to_csv("%s/%s.csv"%(TOP_PATH + outpath, keyword[i][0].replace(' ', '_')))
     for y in years:
         if y == 2018:
-            get_table(y, ripa_suffixes, ripa_columns).to_csv(outpath + '/2018-2019.csv', index = False)
+            get_stops_table(y, ripa_suffixes, ripa_columns).to_csv(TOP_PATH + outpath + '/STOPS_2018-2019.csv', index = False)
         else:
-            get_table(y).to_csv(outpath + '/' + str(y) + '.csv', index = False)
+            get_stops_table(y).to_csv(TOP_PATH + outpath + '/STOPS_' + str(y) + '.csv', index = False)
     return
+
+
+
+
+
+
+
+
+
+
