@@ -6,9 +6,9 @@ import json
 import sys
 
 TOP_PATH = os.environ['PWD']
-OUTPATH = '/data/out'
+OUTPATH = '/data/cleaned'
 
-def clean_2014_2017(df_csv, notebook = False):
+def clean_2014_2017(df_csv):
 	#Decrease granularity of race to conform to 2018-2019 races
 	race_mapping = {
 		'A' : 'Asian',
@@ -73,18 +73,14 @@ def clean_2014_2017(df_csv, notebook = False):
 	df['property_seized'] = df['property_seized'].apply(lambda x: arr_search_convert(x))
 	if not os.path.exists(TOP_PATH + OUTPATH):
 		os.makedirs(TOP_PATH + OUTPATH, exist_ok = True)
-	df.to_csv(TOP_PATH + OUTPATH + '/' + df_csv[-8 : -4] + '_cleaned.csv')
+	df.to_csv(TOP_PATH  + OUTPATH + '/' + df_csv[-8 : -4] + '_cleaned.csv')
 	return df
 
 
 
-def clean_2018_2019(df_csv, notebook = False):
+def clean_2018_2019(df_csv):
 	df = pd.read_csv(df_csv)
-	if notebook:
-		beats_path = '../data/pd_beats_datasd/pd_beats_datasd.shp'
-	else:
-		beats_path = 'data/pd_beats_datasd/pd_beats_datasd.shp'
-	beats_and_serv_areas = gpd.read_file(beats_path)
+	beats_and_serv_areas = areas = gpd.read_file('http://seshat.datasd.org/sde/pd/pd_beats_datasd.zip')
 	beats_serv_dict = beats_and_serv_areas[['beat', 'serv']].set_index('beat', drop = True).serv.to_dict()
 	df['stop_cause'] = df['reason_for_stop']
 	df['subject_race'] = df['race']
@@ -110,36 +106,6 @@ def clean_2018_2019(df_csv, notebook = False):
 		os.makedirs(TOP_PATH + OUTPATH, exist_ok = True)
 	df.to_csv(TOP_PATH + OUTPATH + '/' + df_csv[-13 : -4] + '_cleaned.csv')
 	return df
-
-def clean_census(df):
-	columns_to_keep = [
-		'serv',
-		'H7X001',
-        'H7X002',
-        'H7X003',
-        'H7X004',
-        'H7X005',
-        'H7X006',
-        'H7X007',
-        'H7X008'
-	]
-	column_rename_map = {
-		'serv' : 'service_area',
-		'H7X001' : 'Total',
-        'H7X002' : 'White',
-        'H7X003' : 'Black/African American',
-        'H7X004' : 'Native American',
-        'H7X005' : 'Asian',
-        'H7X006' : 'Pacific Islander',
-        'H7X007' : 'Other',
-        'H7X008' : 'Two or More Races'
-	}
-	temp = df.copy()
-	temp = temp[columns_to_keep]
-	temp = temp.rename(column_rename_map, axis = 1)
-	temp['service_area'] = [str(x) for x in temp.service_area]
-	to_return = temp.groupby('service_area').agg('sum')
-	return to_return
 
 
 
