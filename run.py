@@ -10,7 +10,8 @@ sys.path.append('src/data')
 from etl import get_data
 import cleaning
 
-DATA_PARAMS = '/config/config.json'
+DATA_PARAMS = '/config/data-params.json'
+TEST_PARAMS = '/config/test-params.json'
 TOP_PATH = os.environ['PWD']
 
 def load_params(fp):
@@ -30,6 +31,11 @@ def main(targets):
         cfg = load_params(TOP_PATH + DATA_PARAMS)
         get_data(**cfg)
 
+    if 'test' in targets:
+        cfg = load_params(TOP_PATH + TEST_PARAMS)
+        get_data(**cfg)
+        
+
     if 'transform' in targets:
         if not os.path.exists(TOP_PATH + '/data/cleaned'):
             os.makedirs(TOP_PATH + '/data/cleaned')
@@ -38,7 +44,6 @@ def main(targets):
                 if '2018' in filename:
                     temp_df = cleaning.clean_2018_2019(TOP_PATH + '/data/raw/' + str(filename))
                 else:
-                    year = int(filename[6:10])
                     temp_df = cleaning.clean_2014_2017(TOP_PATH + '/data/raw/' + str(filename))
     return
 
