@@ -107,6 +107,8 @@ def clean_2018_2019(df_csv):
 	df.to_csv(TOP_PATH + OUTPATH + '/' + df_csv[-13 : -4] + '_cleaned.csv', index = False)
 	return df
 
+	
+
 
 
 

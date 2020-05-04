@@ -53,13 +53,16 @@ def regression(date_range, race, issue):
     
     search_df = pd.read_csv(TOP_PATH + '/data/raw/' + issue + '.csv')
     search_df.drop('Unnamed: 0', inplace = True, axis = 1, errors = 'ignore')
-    search_df['value'] = [int(x) if x.isnumeric() else 0 for x in search_df['value']]
+    search_df['value'] = [int(x) if str(x).isnumeric() else 0 for x in search_df['value']]
     #NOTE CHANGED TO LOG VALUE HERE FOR LINES 58-62
     search_df['log_value'] = [np.log(x + .001) for x in search_df['value']]
     df_final = df.merge(search_df, left_on = 'date_stop', right_on = 'date')
-    df_final = df_final.sort_values('log_value').reset_index(drop = True)
-    reg = LinearRegression().fit(df_final['log_value'].values.reshape(-1,1), df_final[race].values)
-    sns.regplot(df_final['log_value'], df_final[race], scatter = True, fit_reg = True)
+    df_final = df_final.sort_values('value').reset_index(drop = True)
+    reg = LinearRegression().fit(df_final['value'].values.reshape(-1,1), df_final[race].values)
+    ax = sns.regplot(df_final['value'], df_final[race], scatter = True, fit_reg = True)
+    ax.set(xlabel = 'Search Trend Value', 
+            ylabel=('Percentage of Stops that were ' + str(race)), 
+                title = ('Stop Rate of ' + str(race) + ' vs. Search Trend Rate'))
     return reg
 
     
