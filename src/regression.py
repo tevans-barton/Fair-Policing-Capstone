@@ -9,11 +9,12 @@ import seaborn as sns
 TOP_PATH = os.environ['PWD']
 DATA_INPUT_PATH = TOP_PATH + '/data/cleaned/'
 
-def regression(date_range, race, issue):
+def regression(date_range, race, issue, reg_type = 'linear'):
     #Check that date_range is in the format that this code is designed to run it
     assert(len(date_range) == 2 and isinstance(date_range, tuple)), "Incorrect parameter format, should be a tuple of two dates"
     assert(re.match(r"^[0-9]{2}-[0-9]{2}-[0-9]{4}$", date_range[0])), "Incorrect date pattern ('MM-DD-YYYY')"
     assert(re.match(r"^[0-9]{2}-[0-9]{2}-[0-9]{4}$", date_range[1])), "Incorrect date pattern ('MM-DD-YYYY')"
+    assert (reg_type == 'linear' or reg_type == 'log'), "Regression type must be one of 'linear' or 'log'"
     issue = issue.replace(' ', '_')
     #Mark the earlier date as the start date
     if pd.to_datetime(date_range[0]) <= pd.to_datetime(date_range[1]):
@@ -57,10 +58,18 @@ def regression(date_range, race, issue):
     #NOTE CHANGED TO LOG VALUE HERE FOR LINES 58-62
     search_df['log_value'] = [np.log(x + .001) for x in search_df['value']]
     df_final = df.merge(search_df, left_on = 'date_stop', right_on = 'date')
-    df_final = df_final.sort_values('value').reset_index(drop = True)
-    reg = LinearRegression().fit(df_final['value'].values.reshape(-1,1), df_final[race].values)
-    ax = sns.regplot(df_final['value'], df_final[race], scatter = True, fit_reg = True)
-    ax.set(xlabel = 'Search Trend Value', 
+    if reg_type == 'linear':
+        df_final = df_final.sort_values('value').reset_index(drop = True)
+        reg = LinearRegression().fit(df_final['value'].values.reshape(-1,1), df_final[race].values)
+        ax = sns.regplot(df_final['value'], df_final[race], scatter = True, fit_reg = True)
+        ax.set(xlabel = 'Search Trend Value', 
+            ylabel=('Percentage of Stops that were ' + str(race)), 
+                title = ('Stop Rate of ' + str(race) + ' vs. Search Trend Rate'))
+    else:
+        df_final = df_final.sort_values('log_value').reset_index(drop = True)
+        reg = LinearRegression().fit(df_final['log_value'].values.reshape(-1,1), df_final[race].values)
+        ax = sns.regplot(df_final['log_value'], df_final[race], scatter = True, fit_reg = True)
+        ax.set(xlabel = 'Log of Search Trend Value', 
             ylabel=('Percentage of Stops that were ' + str(race)), 
                 title = ('Stop Rate of ' + str(race) + ' vs. Search Trend Rate'))
     return reg
