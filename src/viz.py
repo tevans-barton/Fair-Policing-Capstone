@@ -9,6 +9,7 @@ import geoplot.crs as gcrs
 import matplotlib.pyplot as plt
 
 
+
 def make_merged():
     census_fp = '../upload_data/sd_population.csv'
     census =  pd.read_csv(census_fp)
