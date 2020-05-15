@@ -73,7 +73,7 @@ def clean_2014_2017(df_csv):
 	df['property_seized'] = df['property_seized'].apply(lambda x: arr_search_convert(x))
 	if not os.path.exists(TOP_PATH + OUTPATH):
 		os.makedirs(TOP_PATH + OUTPATH, exist_ok = True)
-	df.to_csv(TOP_PATH  + OUTPATH + '/' + df_csv[-8 : -4] + '_cleaned.csv')
+	df.to_csv(TOP_PATH  + OUTPATH + '/' + df_csv[-8 : -4] + '_cleaned.csv', index = False)
 	return df
 
 
@@ -103,8 +103,10 @@ def clean_2018_2019(df_csv):
 				'property_seized']]
 	if not os.path.exists(TOP_PATH + OUTPATH):
 		os.makedirs(TOP_PATH + OUTPATH, exist_ok = True)
-	df.to_csv(TOP_PATH + OUTPATH + '/' + df_csv[-13 : -4] + '_cleaned.csv')
+	df.to_csv(TOP_PATH + OUTPATH + '/' + df_csv[-13 : -4] + '_cleaned.csv', index = False)
 	return df
+
+	
 
 
 
