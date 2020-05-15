@@ -87,7 +87,6 @@ def clean_2018_2019(df_csv):
 	df['subject_age'] = df['perceived_age']
 	df['subject_sex'] = df['perceived_gender']
 	df['service_area'] = df['beat'].map(beats_serv_dict)
-	df = df.drop('beat', axis = 1)
 	df = df.dropna(subset = ['service_area'])
 	df['service_area'] = [str(int(x)) for x in df.service_area]
 	arrested_2018 = ['Y' if 'arrest' in x or 'Arrest' in x or 'hold' in x else 'N' for x in df.result]
@@ -99,7 +98,7 @@ def clean_2018_2019(df_csv):
 	df['contraband_found'] = contraband_2018
 	property_2018 = ['N' if x is np.nan else 'Y' for x in df.type_of_property_seized]
 	df['property_seized'] = property_2018
-	df = df[['stop_id', 'stop_cause', 'service_area', 'subject_race', 'subject_sex', 'subject_age', 
+	df = df[['stop_id', 'stop_cause', 'beat', 'service_area', 'subject_race', 'subject_sex', 'subject_age', 
 				'date_stop', 'time_stop', 'arrested', 'searched', 'obtained_consent', 'contraband_found',
 				'property_seized']]
 	if not os.path.exists(TOP_PATH + OUTPATH):

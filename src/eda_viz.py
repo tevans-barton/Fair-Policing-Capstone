@@ -26,6 +26,7 @@ def month_race_count_viz(date_range, issue, save_fig = False):
     }
     #Use get_data_from_range helper method to get a dataframe from given date range
     df_window = get_data_from_range(date_range)
+    print('Length of window is {a}'.format(a = len(df_window)))
     #Select out the columns that we are focused on in this project
     df_window = df_window[['stop_id', 'service_area', 'subject_race', 'date_stop']]
     #Make month column using string operations on the date
