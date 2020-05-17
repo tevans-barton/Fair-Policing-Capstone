@@ -6,7 +6,7 @@ import numpy as np
 import doctest
 import datetime as dt
 from trends import *
-
+#http://seshat.datasd.org/pd/vehicle_stops_final_datasd_v1.csv
 OLD_FORMAT_URL_FIRST_HALF = 'http://seshat.datasd.org/pd/vehicle_stops_'
 OLD_FORMAT_URL_SECOND_HALF = '_datasd_v1.csv'
 NEW_FORMAT_URL_FIRST_HALF = 'http://seshat.datasd.org/pd/ripa_'
@@ -14,10 +14,18 @@ NEW_FORMAT_URL_FIRST_HALF = 'http://seshat.datasd.org/pd/ripa_'
 TOP_PATH = os.environ['PWD']
 
 def get_stops_table(year, ripa_suffixes = None, ripa_columns = None):
-    if year < 2018:
+    if year < 2017:
         url = OLD_FORMAT_URL_FIRST_HALF + str(year) + OLD_FORMAT_URL_SECOND_HALF
         df = pd.read_csv(url)
         df = df.drop(['sd_resident', 'date_time'], axis = 1)
+    elif year == 2017:
+        #2017 data is split into two sets, one old formatted and one new formatted,
+        #but both with the same URL prefix and suffix
+        url_old_version = OLD_FORMAT_URL_FIRST_HALF + str(year) + OLD_FORMAT_URL_SECOND_HALF
+        url_new_version = OLD_FORMAT_URL_FIRST_HALF + 'final' + OLD_FORMAT_URL_SECOND_HALF
+        df_old = pd.read_csv(url_old_version)
+        df_new = pd.read_csv(url_new_version)
+        df = pd.concat([df_old, df_new], ignore_index = True).reset_index(drop = True)
     else:
         df = pd.read_csv(NEW_FORMAT_URL_FIRST_HALF + ripa_suffixes[0])[ripa_columns[0]]
         for i in range(1, len(ripa_suffixes)):
