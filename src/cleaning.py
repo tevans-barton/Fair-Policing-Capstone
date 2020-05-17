@@ -146,7 +146,8 @@ def clean_trends(df_csv):
 	df['value'] = df['value'].fillna(0)
 	if not os.path.exists(TOP_PATH + OUTPATH):
 		os.makedirs(TOP_PATH + OUTPATH, exist_ok = True)
-	df.to_csv(TOP_PATH + OUTPATH + '/' + df_csv[60:-4] + '_cleaned.csv', index = False)
+	index = df_csv.rfind('/') + 1
+	df.to_csv(TOP_PATH + OUTPATH + '/' + df_csv[index:-4] + '_cleaned.csv', index = False)
 	return df
 
 	
