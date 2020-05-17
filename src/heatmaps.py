@@ -13,7 +13,8 @@ import etl
 import json
 import cleaning
 import datetime
-
+from dateutil.relativedelta import relativedelta
+import matplotlib.colors as colors
 
 def make_areas():
     areas = gpd.read_file('http://seshat.datasd.org/sde/pd/pd_beats_datasd.zip')
@@ -52,9 +53,47 @@ def make_heat(df,race,event,start_date,end_date):
     props = make_proportions(df,race,start_date,end_date)
     heat = areas.merge(props, left_on='serv',right_index=True, how='outer')
     heat = heat.dissolve(by='serv',aggfunc='first').fillna(0).drop(0)
+    event_y = (datetime.date.fromisoformat(start_date) + relativedelta(months = 2)).year
     fig, ax = plt.subplots(1, figsize=(10,10))
     ax.axis('off')
-    ax.set_title(f'Proportion of {race} Drivers Stopped By Service Area\n Event: {event}'.format(race,event), fontdict={'fontsize':'25','fontweight' : '3'})
-    sm = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=0, vmax=heat.prop.max()))
+    ax.set_title(f'Proportion of {race} Drivers Stopped By Service Area\n Event: {event} ({event_y})'.format(race,event,event_y), fontdict={'fontsize':'15','fontweight' : '3'})
+    sm = plt.cm.ScalarMappable(cmap='Greens', norm=plt.Normalize(vmin=0, vmax=heat.prop.max()))
     fig.colorbar(sm)
-    heat.plot(column='prop', cmap='Blues', linewidth=0.8, ax=ax, edgecolor='0.8')
+    heat.plot(column='prop', cmap='Greens', linewidth=0.8, ax=ax, edgecolor='0.8')
+
+def make_difference_heatmap(df_current,df_prior,race,event,start_date,end_date):
+    
+    areas = make_areas()
+    prior_start_date = (datetime.date.fromisoformat(start_date)-relativedelta(years=1)).isoformat()
+    prior_end_date = (datetime.date.fromisoformat(end_date)-relativedelta(years=1)).isoformat()
+    props_post = make_proportions(df_current,race,start_date,end_date)
+    props_pre = make_proportions(df_prior,race,prior_start_date,prior_end_date)
+    differences = props_post.subtract(props_pre)
+    heat_diff = areas.merge(differences, left_on='serv',right_index=True, how='outer')
+    heat_diff = heat_diff.dissolve(by='serv',aggfunc='first').fillna(0).drop(0)
+    event_y = (datetime.date.fromisoformat(start_date) + relativedelta(months = 2)).year
+    
+    cdict = {'green':  ((0.0, 0.0, 0.0),   # no red at 0
+                  (0.5, 1.0, 1.0),   # all channels set to 1.0 at 0.5 to create white
+                  (1.0, 0.8, 0.8)),  # set to 0.8 so its not too bright at 1
+
+        'red': ((0.0, 0.8, 0.8),   # set to 0.8 so its not too bright at 0
+                  (0.5, 1.0, 1.0),   # all channels set to 1.0 at 0.5 to create white
+                  (1.0, 0.0, 0.0)),  # no green at 1
+
+        'blue':  ((0.0, 0.0, 0.0),   # no blue at 0
+                  (0.5, 1.0, 1.0),   # all channels set to 1.0 at 0.5 to create white
+                  (1.0, 0.0, 0.0))   # no blue at 1
+       }
+
+# Create the colormap using the dictionary
+    GnRd = colors.LinearSegmentedColormap('GnRd', cdict)
+
+    fig, ax = plt.subplots(1, figsize=(10,10))
+    ax.axis('off')
+    ax.set_title(f'Proportion of {race} Drivers Stopped By Service Area\n Event: {event} ({event_y})'.format(race,event,event_y), fontdict={'fontsize':'15','fontweight' : '3'})
+    sm = plt.cm.ScalarMappable(cmap=GnRd, norm=plt.Normalize(vmin=-1, vmax=1))
+    fig.colorbar(sm)
+    heat_diff.plot(column='prop', cmap=GnRd, linewidth=0.8, ax=ax, edgecolor='0.8')
+    
+
