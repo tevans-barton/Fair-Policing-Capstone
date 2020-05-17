@@ -47,6 +47,8 @@ def main(targets):
                     temp_df = cleaning.clean_2017(TOP_PATH + '/data/raw/' + str(filename))
                 else:
                     temp_df = cleaning.clean_2014_2016(TOP_PATH + '/data/raw/' + str(filename))
+            else:
+                temp_df = cleaning.clean_trends(TOP_PATH + '/data/raw/' + str(filename))
     return
 
 
