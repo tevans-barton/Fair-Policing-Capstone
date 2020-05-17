@@ -58,7 +58,7 @@ def get_data(start_date, end_date, keyword, years, ripa_suffixes, ripa_columns, 
         time = (start_date[i], end_date[i])
         rep = trends.download_report(keyword[i], time = time)
         file = parse_csv(rep)
-        file.to_csv("%s/%s.csv"%(TOP_PATH + outpath, keyword[i][0].replace(' ', '_')))
+        file.to_csv("%s/%s.csv"%(TOP_PATH + outpath, keyword[i][0].replace(' ', '_')), index = False)
     for y in years:
         if y == 2018:
             get_stops_table(y, ripa_suffixes, ripa_columns).to_csv(TOP_PATH + outpath + '/STOPS_2018-2019.csv', index = False)

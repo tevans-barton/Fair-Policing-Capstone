@@ -139,6 +139,16 @@ def clean_2018_2019(df_csv):
 	df.to_csv(TOP_PATH + OUTPATH + '/' + df_csv[-13 : -4] + '_cleaned.csv', index = False)
 	return df
 
+
+def clean_trends(df_csv):
+	df = pd.read_csv(df_csv)
+	df['value'] = pd.to_numeric(df['value'], errors = 'coerce')
+	df['value'] = df['value'].fillna(0)
+	if not os.path.exists(TOP_PATH + OUTPATH):
+		os.makedirs(TOP_PATH + OUTPATH, exist_ok = True)
+	df.to_csv(TOP_PATH + OUTPATH + '/' + df_csv[60:-4] + '_cleaned.csv', index = False)
+	return df
+
 	
 
 
