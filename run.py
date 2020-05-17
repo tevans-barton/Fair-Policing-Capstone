@@ -43,8 +43,10 @@ def main(targets):
             if 'STOPS' in filename:
                 if '2018' in filename:
                     temp_df = cleaning.clean_2018_2019(TOP_PATH + '/data/raw/' + str(filename))
+                elif '2017' in filename:
+                    temp_df = cleaning.clean_2017(TOP_PATH + '/data/raw/' + str(filename))
                 else:
-                    temp_df = cleaning.clean_2014_2017(TOP_PATH + '/data/raw/' + str(filename))
+                    temp_df = cleaning.clean_2014_2016(TOP_PATH + '/data/raw/' + str(filename))
     return
 
 

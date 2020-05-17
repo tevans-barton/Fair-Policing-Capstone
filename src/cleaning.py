@@ -8,39 +8,44 @@ import sys
 TOP_PATH = os.environ['PWD']
 OUTPATH = '/data/cleaned'
 
-def clean_2014_2017(df_csv):
-	#Decrease granularity of race to conform to 2018-2019 races
-	race_mapping = {
-		'A' : 'Asian',
-		'B' : 'Black/African American',
-		'C' : 'Asian', 
-		'D' : 'Asian',
-		'F' : 'Asian',
-		'G' : 'Pacific Islander',
-		'H' : 'Hispanic/Latino/a',
-		'I' : 'Native American',
-		'J' : 'Asian',
-		'K' : 'Asian',
-		'L' : 'Asian',
-		'O' : 'Other',
-		'P' : 'Pacific Islander',
-		'S' : 'Pacific Islander',
-		'U' : 'Pacific Islander',
-		'V' : 'Asian',
-		'W' : 'White',
-		'Z' : 'Middle Eastern or South Asian',
-		'X' : None
-	}
-	df = pd.read_csv(df_csv)
-	df['subject_race'] = df['subject_race'].map(race_mapping)
-	#Map Sex to full word
-	sex_mapping = {
-		'M' : 'Male',
-		'F' : 'Female',
-		'X' : 'Other'
-	}
-	df['subject_sex'] = df['subject_sex'].map(sex_mapping)
-	def fix_age(age):
+race_mapping = {
+	'A' : 'Asian',
+	'B' : 'Black/African American',
+	'C' : 'Asian', 
+	'D' : 'Asian',
+	'F' : 'Asian',
+	'G' : 'Pacific Islander',
+	'H' : 'Hispanic/Latino/a',
+	'I' : 'Native American',
+	'J' : 'Asian',
+	'K' : 'Asian',
+	'L' : 'Asian',
+	'O' : 'Other',
+	'P' : 'Pacific Islander',
+	'S' : 'Pacific Islander',
+	'U' : 'Pacific Islander',
+	'V' : 'Asian',
+	'W' : 'White',
+	'Z' : 'Middle Eastern or South Asian',
+	'X' : None
+}
+sex_mapping = {
+	'M' : 'Male',
+	'F' : 'Female',
+	'X' : 'Other'
+}
+reg_binary_mapping = {
+	'Y' : 'Y',
+	'N' : 'N',
+	'n' : 'N',
+	'y' : 'Y',
+	' ' : np.nan,
+	'b' : np.nan,
+	'M' : np.nan
+}
+
+#Helper function for cleaning years 2014-2017
+def fix_age(age):
 		try:
 			mod_age = int(age)
 			if mod_age > 113:
@@ -50,22 +55,21 @@ def clean_2014_2017(df_csv):
 		except ValueError:
 			return np.nan
 
-	df['subject_age'] = df['subject_age'].apply(lambda x: fix_age(x))
-	#Map binary entries
-	reg_binary_mapping = {
-		'Y' : 'Y',
-		'N' : 'N',
-		'n' : 'N',
-		'y' : 'Y',
-		' ' : np.nan,
-		'b' : np.nan,
-		'M' : np.nan
-	}
-	def arr_search_convert(val):
+#Helper function for cleaning years 2014-2017
+def arr_search_convert(val):
 		if isinstance(val, float) or val == 'N':
 			return 'N'
 		else:
 			return 'Y'
+
+
+def clean_2014_2016(df_csv):
+	#Decrease granularity of race to conform to 2018-2019 races
+	df = pd.read_csv(df_csv)
+	df['subject_race'] = df['subject_race'].map(race_mapping)
+	#Map Sex to full word
+	df['subject_sex'] = df['subject_sex'].map(sex_mapping)
+	df['subject_age'] = df['subject_age'].apply(lambda x: fix_age(x))
 	df['arrested'] = df['arrested'].apply(lambda x: arr_search_convert(x))
 	df['searched'] = df['searched'].apply(lambda x: arr_search_convert(x))
 	df['obtained_consent'] = df['obtained_consent'].map(reg_binary_mapping)
@@ -75,6 +79,35 @@ def clean_2014_2017(df_csv):
 		os.makedirs(TOP_PATH + OUTPATH, exist_ok = True)
 	df.to_csv(TOP_PATH  + OUTPATH + '/' + df_csv[-8 : -4] + '_cleaned.csv', index = False)
 	return df
+
+
+def clean_2017(df_csv):
+	df = pd.read_csv(df_csv)
+	#Drop unnecessary columns
+	df.drop(['action', 'search_basis', 'search_type'], axis = 1, inplace = True)
+	df['date_stop'] = df.date_time.str.slice(0,10)
+	df['time_stop'] = df.date_time.str.slice(10,)
+	df = df.sort_values('date_stop').reset_index(drop = True)[['stop_id', 'stop_cause', 'service_area', 
+								'subject_race', 'subject_sex', 'subject_age', 'date_time', 'date_stop', 
+								'time_stop', 'sd_resident', 'arrested', 'searched', 'obtained_consent', 
+								'contraband_found', 'property_seized']]
+	#Decrease granularity of race to conform to 2018-2019 races
+	df['subject_race'] = df['subject_race'].map(race_mapping)
+	#Map Sex to full word
+	df['subject_sex'] = df['subject_sex'].map(sex_mapping)
+	df['subject_age'] = df['subject_age'].apply(lambda x: fix_age(x))
+	#Map binary entries
+	df['arrested'] = df['arrested'].apply(lambda x: arr_search_convert(x))
+	df['searched'] = df['searched'].apply(lambda x: arr_search_convert(x))
+	df['obtained_consent'] = df['obtained_consent'].map(reg_binary_mapping)
+	df['contraband_found'] = df['contraband_found'].apply(lambda x: arr_search_convert(x))
+	df['property_seized'] = df['property_seized'].apply(lambda x: arr_search_convert(x))
+	df.drop(['sd_resident', 'date_time'], axis = 1, inplace = True)
+	if not os.path.exists(TOP_PATH + OUTPATH):
+		os.makedirs(TOP_PATH + OUTPATH, exist_ok = True)
+	df.to_csv(TOP_PATH  + OUTPATH + '/2017_cleaned.csv', index = False)
+	return df
+
 
 
 
