@@ -142,6 +142,7 @@ def clean_2018_2019(df_csv):
 
 def clean_trends(df_csv):
 	df = pd.read_csv(df_csv)
+	df.drop('Unnamed: 0', axis = 1, inplace = True, errors = 'ignore')
 	df['value'] = pd.to_numeric(df['value'], errors = 'coerce')
 	df['value'] = df['value'].fillna(0)
 	if not os.path.exists(TOP_PATH + OUTPATH):
