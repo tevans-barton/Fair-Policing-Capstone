@@ -1,4 +1,5 @@
 import sys
+import os
 sys.path.insert(0,'../src')
 sys.path.insert(0,'../data')
 sys.path.insert(0,'../upload_data')
@@ -15,6 +16,9 @@ import cleaning
 import datetime
 from dateutil.relativedelta import relativedelta
 import matplotlib.colors as colors
+
+TOP_PATH = os.environ['PWD']
+DATA_OUTPATH = TOP_PATH + '/heatmap_visualizations'
 
 def make_areas():
     areas = gpd.read_file('http://seshat.datasd.org/sde/pd/pd_beats_datasd.zip')
@@ -48,7 +52,7 @@ def make_proportions(df,race,start_date,end_date):
     merger = numers.merge(denoms, left_index=True,right_index=True)
     return pd.DataFrame(merger.numerator/merger.denominator, columns=['prop'])
 
-def make_heat(df,race,event,start_date,end_date):
+def make_heat(df,race,event,start_date,end_date,save_fig=False):
     areas = make_areas()
     props = make_proportions(df,race,start_date,end_date)
     heat = areas.merge(props, left_on='serv',right_index=True, how='outer')
@@ -57,15 +61,23 @@ def make_heat(df,race,event,start_date,end_date):
     fig, ax = plt.subplots(1, figsize=(10,10))
     ax.axis('off')
     ax.set_title(f'Proportion of {race} Drivers Stopped By Service Area\n Event: {event} ({event_y})'.format(race,event,event_y), fontdict={'fontsize':'15','fontweight' : '3'})
-    sm = plt.cm.ScalarMappable(cmap='Greens', norm=plt.Normalize(vmin=0, vmax=heat.prop.max()))
+    sm = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=0, vmax=heat.prop.max()))
     fig.colorbar(sm)
-    heat.plot(column='prop', cmap='Greens', linewidth=0.8, ax=ax, edgecolor='0.8')
+    heat.plot(column='prop', cmap='Blues', linewidth=0.8, ax=ax, edgecolor='0.8')
+    if save_fig:
+        if not os.path.exists(DATA_OUTPATH):
+            os.makedirs(DATA_OUTPATH, exist_ok = True)
+        fig.savefig(DATA_OUTPATH + '/{r}_{e}_({e_y})'.format(r = race.replace('/', '_'),e = event,e_y = event_y))
 
-def make_difference_heatmap(df_current,df_prior,race,event,start_date,end_date):
+def make_difference_heatmap(df_current,df_prior,race,event,start_date,end_date,save_fig=False):
     
     areas = make_areas()
-    prior_start_date = (datetime.date.fromisoformat(start_date)-relativedelta(years=1)).isoformat()
-    prior_end_date = (datetime.date.fromisoformat(end_date)-relativedelta(years=1)).isoformat()
+    if datetime.date.fromisoformat(start_date).year ==2014:
+        prior_start_date = (datetime.date.fromisoformat(start_date)+relativedelta(years=1)).isoformat()
+        prior_end_date = (datetime.date.fromisoformat(end_date)+relativedelta(years=1)).isoformat()
+    else:
+        prior_start_date = (datetime.date.fromisoformat(start_date)-relativedelta(years=1)).isoformat()
+        prior_end_date = (datetime.date.fromisoformat(end_date)-relativedelta(years=1)).isoformat()
     props_post = make_proportions(df_current,race,start_date,end_date)
     props_pre = make_proportions(df_prior,race,prior_start_date,prior_end_date)
     differences = props_post.subtract(props_pre)
@@ -91,9 +103,13 @@ def make_difference_heatmap(df_current,df_prior,race,event,start_date,end_date):
 
     fig, ax = plt.subplots(1, figsize=(10,10))
     ax.axis('off')
-    ax.set_title(f'Proportion of {race} Drivers Stopped By Service Area\n Event: {event} ({event_y})'.format(race,event,event_y), fontdict={'fontsize':'15','fontweight' : '3'})
+    ax.set_title(f'Change in Proportion of {race} Drivers Stopped By Service Area\n Event: {event} ({event_y})'.format(race,event,event_y), fontdict={'fontsize':'15','fontweight' : '3'})
     sm = plt.cm.ScalarMappable(cmap=GnRd, norm=plt.Normalize(vmin=-1, vmax=1))
     fig.colorbar(sm)
     heat_diff.plot(column='prop', cmap=GnRd, linewidth=0.8, ax=ax, edgecolor='0.8')
+    if save_fig:
+        if not os.path.exists(DATA_OUTPATH):
+            os.makedirs(DATA_OUTPATH, exist_ok = True)
+        fig.savefig(DATA_OUTPATH + '/{r}_{e}_({e_y})'.format(r = race.replace('/', '_'),e = event,e_y = event_y))
     
 
