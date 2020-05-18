@@ -9,8 +9,9 @@ from get_date_range_df import get_data_from_range
 
 TOP_PATH = os.environ['PWD']
 DATA_INPUT_PATH = TOP_PATH + '/data/cleaned/'
+DATA_OUTPATH = TOP_PATH + '/regression_visualizations'
 
-def regression(date_range, race, issue, reg_type = 'log'):
+def regression(date_range, race, issue, reg_type = 'log', save_fig = False):
     assert (reg_type == 'linear' or reg_type == 'log'), "Regression type must be one of 'linear' or 'log'"
     issue = issue.replace(' ', '_')
 
@@ -31,7 +32,7 @@ def regression(date_range, race, issue, reg_type = 'log'):
 
     #merge together stop data and search trend data
     df_final = df.merge(search_df, left_on = 'date_stop', right_on = 'date')
-
+    plt.figure(figsize=(12,6.75))
     #Do linear regression against the search trend value
     if reg_type == 'linear':
         df_final = df_final.sort_values('value').reset_index(drop = True)
@@ -39,7 +40,7 @@ def regression(date_range, race, issue, reg_type = 'log'):
         ax = sns.regplot(df_final['value'], df_final[race], scatter = True, fit_reg = True)
         ax.set(xlabel = 'Search Trend Value', 
             ylabel=('Percentage of Stops that were ' + str(race)), 
-                title = ('Stop Rate of ' + str(race) + ' vs. Search Trend Rate'))
+                title = ('Stop Rate of {r} vs. Search Trend Rate for {iss}'.format(r = race, iss = issue.replace('_', ' '))))
     
     #Do linear regression against the log of the search trend value
     else:
@@ -48,7 +49,13 @@ def regression(date_range, race, issue, reg_type = 'log'):
         ax = sns.regplot(df_final['log_value'], df_final[race], scatter = True, fit_reg = True)
         ax.set(xlabel = 'Log of Search Trend Value', 
             ylabel=('Percentage of Stops that were ' + str(race)), 
-                title = ('Stop Rate of ' + str(race) + ' vs. Log of Search Trend Rate'))
+                title = ('Stop Rate of {r} vs. Log of Search Trend Rate for {iss}'.format(r = race, iss = issue.replace('_', ' '))))
+    print(type(ax))
+    if save_fig:
+        fig = ax.figure
+        if not os.path.exists(DATA_OUTPATH):
+            os.makedirs(DATA_OUTPATH, exist_ok = True)
+        fig.savefig(DATA_OUTPATH + '/{iss}_Regression.png'.format(iss = issue.replace(' ', '_')))
     return reg
 
     
