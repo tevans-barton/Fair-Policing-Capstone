@@ -12,6 +12,7 @@ DATA_INPUT_PATH = TOP_PATH + '/data/cleaned/'
 
 #helper function to get all of the data required for a given date range
 def get_data_from_range(date_range):
+    NY_2018 = pd.to_datetime('01-01-2018') 
     START_OF_2018_DATA = pd.to_datetime('07-01-2018')
     #Check that date_range is in the format that this code is designed to run it
     assert(len(date_range) == 2 and isinstance(date_range, tuple)), "Incorrect parameter format, should be a tuple of two dates"
@@ -32,6 +33,8 @@ def get_data_from_range(date_range):
 
     #Because of the way the stop files are made (2018 data being split between the 2017 file and the joint 2018-2019 file),
     #it was required to do some slight altering of the years
+    if pd.to_datetime(start_date) >= NY_2018 and pd.to_datetime(start_date) <= START_OF_2018_DATA:
+        start_year = 2017
     if pd.to_datetime(end_date) >=  START_OF_2018_DATA:
         end_year = 2018
     elif end_year == 2018:
@@ -41,7 +44,7 @@ def get_data_from_range(date_range):
     df = pd.DataFrame()
     for yr in range(start_year, end_year + 1):
         if yr == 2018:
-            df = pd.concat([df, pd.read_csv(TOP_PATH + '/data/cleaned/2018-2019_cleaned.csv')])
+            df = pd.concat([df, pd.read_csv(TOP_PATH + '/data/cleaned/2018-2019_cleaned.csv').drop('beat', axis = 1)])
         else:
             df = pd.concat([df, pd.read_csv(TOP_PATH + '/data/cleaned/' + str(yr) + '_cleaned.csv')])
 
