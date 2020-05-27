@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 import seaborn as sns
 from get_date_range_df import get_data_from_range
+from scipy.stats import pearsonr
 
 TOP_PATH = os.environ['PWD']
 DATA_INPUT_PATH = TOP_PATH + '/data/cleaned/'
@@ -41,6 +42,7 @@ def regression(date_range, race, issue, reg_type = 'log', save_fig = False):
         ax.set(xlabel = 'Search Trend Value', 
             ylabel=('Percentage of Stops that were ' + str(race)), 
                 title = ('Stop Rate of {r} vs. Search Trend Rate for {iss}'.format(r = race, iss = issue.replace('_', ' '))))
+        print('Correlation is: {corr}'.format(corr = pearsonr(df_final['value'], df_final[race])[0]))
     
     #Do linear regression against the log of the search trend value
     else:
@@ -50,12 +52,14 @@ def regression(date_range, race, issue, reg_type = 'log', save_fig = False):
         ax.set(xlabel = 'Log of Search Trend Value', 
             ylabel=('Percentage of Stops that were ' + str(race)), 
                 title = ('Stop Rate of {r} vs. Log of Search Trend Rate for {iss}'.format(r = race, iss = issue.replace('_', ' '))))
-    print(type(ax))
+        print('Correlation is: {corr}'.format(corr = pearsonr(df_final['log_value'], df_final[race])[0]))
+
     if save_fig:
         fig = ax.figure
         if not os.path.exists(DATA_OUTPATH):
             os.makedirs(DATA_OUTPATH, exist_ok = True)
         fig.savefig(DATA_OUTPATH + '/{iss}_Regression.png'.format(iss = issue.replace(' ', '_')))
+
     return reg
 
     
