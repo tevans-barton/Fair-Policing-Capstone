@@ -21,7 +21,7 @@ TOP_PATH = os.environ['PWD']
 DATA_OUTPATH = TOP_PATH + '/heatmap_visualizations'
 
 def make_areas():
-    areas = gpd.read_file('http://seshat.datasd.org/sde/pd/pd_beats_datasd.zip')
+    areas = gpd.read_file('../upload_data/pd_beats_datasd.shp')
     areas = areas.drop(['objectid', 'name', 'beat', 'div'],axis = 1)
     return areas
 
@@ -61,9 +61,8 @@ def make_heat(df,race,event,start_date,end_date,save_fig=False):
     fig, ax = plt.subplots(1, figsize=(10,10))
     ax.axis('off')
     ax.set_title(f'Proportion of {race} Drivers Stopped By Service Area\n Event: {event} ({event_y})'.format(race,event,event_y), fontdict={'fontsize':'15','fontweight' : '3'})
-    sm = plt.cm.ScalarMappable(cmap='Blues', norm=plt.Normalize(vmin=0, vmax=heat.prop.max()))
-    fig.colorbar(sm)
-    heat.plot(column='prop', cmap='Blues', linewidth=0.8, ax=ax, edgecolor='0.8')
+    heat_diff.plot(column='prop', cmap='Blues', linewidth=0.8, ax=ax,
+                   edgecolor='0.8', vmin=-1, vmax=1, legend=True)
     if save_fig:
         if not os.path.exists(DATA_OUTPATH):
             os.makedirs(DATA_OUTPATH, exist_ok = True)
@@ -104,12 +103,9 @@ def make_difference_heatmap(df_current,df_prior,race,event,start_date,end_date,s
     fig, ax = plt.subplots(1, figsize=(10,10))
     ax.axis('off')
     ax.set_title(f'Change in Proportion of {race} Drivers Stopped By Service Area\n Event: {event} ({event_y})'.format(race,event,event_y), fontdict={'fontsize':'15','fontweight' : '3'})
-    sm = plt.cm.ScalarMappable(cmap=GnRd, norm=plt.Normalize(vmin=-1, vmax=1))
-    fig.colorbar(sm)
-    heat_diff.plot(column='prop', cmap=GnRd, linewidth=0.8, ax=ax, edgecolor='0.8')
+    heat_diff.plot(column='prop', cmap=GnRd, linewidth=0.8, ax=ax, edgecolor='0.8', vmin=-.5, vmax=.5, legend=True)
     if save_fig:
         if not os.path.exists(DATA_OUTPATH):
             os.makedirs(DATA_OUTPATH, exist_ok = True)
         fig.savefig(DATA_OUTPATH + '/{r}_{e}_({e_y})'.format(r = race.replace('/', '_'),e = event,e_y = event_y))
-    
-
+    return heat_diff
